@@ -1,0 +1,255 @@
+<script>
+  
+  //Chama função do Apps Scripts para buscar informações do produto e com sucesso chama a função adicionarProduto
+  function add(produto){
+    google.script.run.withSuccessHandler(adicionarProduto).puxaProdutos(produto)
+  }
+
+  //Função para adicionar novo item ao pedido
+  function adicionarProduto(dados){
+
+    //Cria o HTML do item para adicionar ao pedido
+    var div = document.createElement("div")
+    div.classList.add("row")
+
+    var divSelect = document.createElement("div")
+    divSelect.classList.add("col-md-6")
+
+    var labelSelect = document.createElement("label")
+    labelSelect.textContent = dados[0].produto
+
+    var select = document.createElement("select")
+    select.classList.add("form-select")
+
+    dados.forEach((dado)=>{
+      var option = document.createElement("option")
+      option.textContent = dado.nome
+      select.appendChild(option)
+    })
+
+    //Adiciona o Event Listener OnChange onde é atualizado os valores e chama a função calculaTotal
+    select.onchange = function(){
+      dados.forEach((dado)=>{
+        if(this.value == dado.nome){
+          let div = this.parentNode
+          div.parentNode.querySelector('input[type="number"]').value = 1
+          div.parentNode.querySelector('input[type="text"]').value = "R$"+dado.valor
+          div.parentNode.querySelector('.custo').value = dado.custo
+        }
+      })
+      calculaTotal()
+    }
+
+    //Adiciona os elementos a div
+    divSelect.appendChild(labelSelect)
+    divSelect.appendChild(select)
+
+    //Cria o HTML da quantidade do item para adicionar ao pedido
+    var divQuantidade = document.createElement("div")
+    divQuantidade.classList.add("col-md-2")
+
+    var labelQuantidade = document.createElement("label")
+    labelQuantidade.textContent = "Quantidade"
+
+    var inpQuantidade = document.createElement("input")
+    inpQuantidade.type = "number"
+    inpQuantidade.value = 1
+    inpQuantidade.classList.add("form-control")
+
+    //Adiciona o Event Listener OnChange onde é atualizado os valores e chama a função calculaTotal
+    inpQuantidade.onchange = function(){
+      let div = this.parentNode
+      var nome = div.parentNode.querySelector('select').value
+      var valor = 0
+      dados.forEach((dado)=>{
+        if(dado.nome == nome) valor = dado.valor
+      })
+      var total = this.value * valor
+      div.parentNode.querySelector('input[type="text"]').value = "R$"+total.toFixed(2)
+      calculaTotal()
+    }
+
+    //Adiciona os elementos a div
+    divQuantidade.appendChild(labelQuantidade)
+    divQuantidade.appendChild(inpQuantidade)
+
+    //Cria o HTML do valor do item para adicionar ao pedido
+    var divValor = document.createElement("div")
+    divValor.classList.add("col-md-3")
+
+    var labelValor = document.createElement("label")
+    labelValor.textContent = "Valor"
+
+    var inpValor = document.createElement("input")
+    inpValor.type = "text"
+    inpValor.value = "R$"+dados[0].valor
+    inpValor.classList.add("form-control")
+    inpValor.classList.add("valor")
+
+    //Adiciona o Event Listener OnChange onde chama a função calculaTotal
+    inpValor.onchange = function(){
+      calculaTotal()
+    }
+
+    //Adiciona os elementos a div
+    divValor.appendChild(labelValor)
+    divValor.appendChild(inpValor)
+
+    //Cria o HTML do valor total do item para adicionar ao pedido
+    var inpCusto = document.createElement("input")
+    inpCusto.type = "number"
+    inpCusto.value = dados[0].custo
+    inpCusto.classList.add("custo")
+    inpCusto.classList.add("displayNone")
+
+    //Chama a função que cria o HTML para remoção do item caso necessário
+    var divRemove = createDivRemove()
+
+    //Adiciona todas as divs criadas a div principal do item
+    div.appendChild(divSelect)
+    div.appendChild(divQuantidade)
+    div.appendChild(divValor)
+    div.appendChild(inpCusto)
+    div.appendChild(divRemove)
+
+    var containers = document.querySelectorAll(".container")
+    containers[1].appendChild(div)
+    containers[2].classList.remove("displayNone")
+    
+    calculaTotal()
+  }
+
+  //Função cria o HTML para remoção do item caso necessário
+  function createDivRemove(){
+    var divRemove = document.createElement("div")
+    divRemove.classList.add("col-md-1")
+
+    var btnRemove = document.createElement("button")
+    btnRemove.style.cssText = "margin-top: 24px;"
+    btnRemove.type = "button"
+    btnRemove.classList.add("btn")
+    btnRemove.classList.add("btn-danger")
+    btnRemove.innerHTML = '<i class="bi bi-trash-fill"></i>'
+    btnRemove.title = "Remover Produto"
+    btnRemove.onclick = function () {
+        let div = this.parentNode
+        let row = div.parentNode
+        row.parentNode.removeChild(row);
+        calculaTotal()
+    }
+
+    divRemove.appendChild(btnRemove)
+
+    return divRemove
+  }
+
+  function addOn(tipo){
+    var div = document.createElement("div")
+    div.classList.add("row")
+
+    var divValor = document.createElement("div")
+    divValor.classList.add("col-md-3")
+    divValor.classList.add("offset-md-8")
+
+    var labelValor = document.createElement("label")
+
+    var inpValor = document.createElement("input")
+    inpValor.type = "text"
+    inpValor.value = "R$0.00"
+    inpValor.classList.add("form-control")
+    inpValor.classList.add("valor")
+
+    if(tipo == "Cupom"){
+      labelValor.textContent = "Valor do Cupom"
+      inpValor.classList.add("cupom")
+    } else{
+      labelValor.textContent = "Valor da Entrega"
+      inpValor.classList.add("entrega")
+    } 
+
+    inpValor.onchange = function(){
+      calculaTotal()
+    }
+
+    divValor.appendChild(labelValor)
+    divValor.appendChild(inpValor)
+
+    var divRemove = createDivRemove()
+
+    div.appendChild(divValor)
+    div.appendChild(divRemove)
+
+    var containers = document.querySelectorAll(".container")
+    containers[1].appendChild(div)
+    containers[2].classList.remove("displayNone")
+  }
+
+  //Função faz o calculo total do pedido, somando todos os itens
+  function calculaTotal(){
+    var totalPedido = 0
+    document.querySelectorAll(".valor").forEach((v)=>{
+      if(v.classList.contains('cupom')) totalPedido -= parseFloat(v.value.substring(2,v.lenght))
+      else totalPedido += parseFloat(v.value.substring(2,v.lenght))
+    })
+    document.querySelector("#totalPedido").value = "R$"+totalPedido.toFixed(2)
+  }
+
+  //Função para salvar um novo pedido
+  function salvar(){
+    var pedido = []
+
+    //Percorre todos os itens do pedido e armazena todos os valores no array pedido
+    document.querySelectorAll(".valor").forEach((item)=>{
+      let i = {}
+      if(item.classList.contains('cupom')){
+        i.nome = "Cupom"
+        i.quantidade = 1
+        i.custo = 0
+        i.valor = parseFloat(item.value.substring(2,item.lenght))*(-1)
+      }
+      else if(item.classList.contains('entrega')){
+        i.nome = "Entrega"
+        i.quantidade = 1
+        i.custo = 0
+        i.valor = parseFloat(item.value.substring(2,item.lenght))
+      } 
+      else {
+        let div = item.parentNode
+        i.nome = div.parentNode.querySelector('select').value
+        i.quantidade = div.parentNode.querySelector('input[type="number"]').value
+        i.custo = parseFloat(div.parentNode.querySelector('.custo').value * div.parentNode.querySelector('input[type="number"]').value)
+        i.valor = parseFloat(item.value.substring(2,item.lenght))
+      }
+      i.cliente = document.querySelector("#nomeCliente").value
+
+      pedido.push(i)
+    })
+    
+    //Ativa os spinners de loading
+    document.querySelector("#spinner").classList.add("spinner-border")
+    document.querySelector("#spinner").classList.add("spinner-border-sm")
+    document.querySelector("#spinner").parentNode.disabled = true
+
+    //Chama função do Apps Scripts para salvar o pedido e com sucesso chama a função salvou
+    google.script.run.withSuccessHandler(salvou).salvar(pedido)
+  }
+
+  //Função que é executada após salvar um novo pedido
+  function salvou(){
+    alert("Venda Registrada")
+
+    //Desativa os spinners de loading
+    document.querySelector("#spinner").classList.remove("spinner-border")
+    document.querySelector("#spinner").classList.remove("spinner-border-sm")
+    document.querySelector("#spinner").parentNode.disabled = false
+
+    var containers = document.querySelectorAll(".container")
+    containers[1].innerHTML = ""
+    containers[2].classList.add("displayNone")
+
+    document.querySelector("#totalPedido").value = ""
+    document.querySelector("#nomeCliente").value = ""
+    document.querySelector(".action-button").classList.remove("active")
+  }
+      
+</script>
