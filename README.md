@@ -17,7 +17,7 @@
 
 <h1 align="center">Demo</h1>
 
-<video src="./demo.mp4" controls width="1000"></video>
+https://user-images.githubusercontent.com/69807420/157566575-e0352163-e32e-439b-9b87-060971c9f670.mp4
 
 <p><a target="_blank" href="https://wesleyoliveira98.github.io/lanchonete-google-apps-scripts/">Clique aqui</a> para visualizar a demo.</p>
 <p><a target="_blank" href="https://docs.google.com/spreadsheets/d/1M7nI8nkf5zHj_ar7LhCm3hWQIo_FTEgnjTQmGIcU-X8/edit?usp=sharing">Clique aqui</a> para visualizar o projeto dentro do Google, o link irá te encaminhar para a planilha, faça uma cópia da mesma, vá em Extensões > Apps Script. Após isso, altere o link da planilha na linha 17 do main.gs para o link da sua planilha de cópia, salve e faça uma implantação, autorize a aplicação, e conseguirá ver o link do seu Kanban Web App, caso queira limpar os dados de exemplo você pode apagar pela planilha ou pelo próprio sistema</p>
